@@ -94,22 +94,27 @@ static void _usart1_io_init(void) {
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 	// see all of definitions of gpio register at RM0091 page 158
 	// set mode to output
-	GPIOA->MODER &= (~GPIO_MODER_MODER9);
+	GPIOA->MODER &= (~(GPIO_MODER_MODER9 | GPIO_MODER_MODER10));
 	// alternate function mode
-	GPIOA->MODER |= GPIO_MODER_MODER9_1;
+	GPIOA->MODER |= GPIO_MODER_MODER9_1 | GPIO_MODER_MODER10_1;
 	// set output type to push-pull
 	GPIOA->OTYPER &= (~GPIO_OTYPER_OT_9);
+	// set output type to open drain even tho it is n/a for rx
+	GPIOA->OTYPER |= GPIO_OTYPER_OT_10;
 	// set output speed to high
-	GPIOA->OSPEEDR |= GPIO_OSPEEDR_OSPEEDR9;
+	GPIOA->OSPEEDR |= GPIO_OSPEEDR_OSPEEDR9 | GPIO_OSPEEDR_OSPEEDR10;
 	// set pull-up/pull-down to no pull-up no pull-down
-	GPIOA->PUPDR &= (~GPIO_PUPDR_PUPDR9);
+	GPIOA->PUPDR &= (~(GPIO_PUPDR_PUPDR9 | GPIO_PUPDR_PUPDR10));
 	// ref stm32f051r8.pdf page 37
 	//| Pin name  | AF0        | AF1       | AF2      | AF3        |
 	//|-----------|------------|-----------|----------|------------|
 	//| PA9       | TIM15_BKIN | USART1_TX | TIM1_CH2 | TSC_G4_IO1 |
+	//| PA10      | TIM17_BKIN | USART1_RX | TIM1_CH3 | TSC_G4_IO2 |
 	// RM00091 page 163
 	GPIOA->AFR[1] &= (~GPIO_AFRH_AFSEL9);
 	GPIOA->AFR[1] |= ((uint32_t)0b01 << GPIO_AFRH_AFSEL9_Pos);
+	GPIOA->AFR[1] &= (~GPIO_AFRH_AFSEL10);
+	GPIOA->AFR[1] |= ((uint32_t)0b01 << GPIO_AFRH_AFSEL10_Pos);
 }
 
 static void _usart1_periph_init(void) {
@@ -129,34 +134,67 @@ static void _usart1_periph_init(void) {
 	USART1->CR2 &= (~USART_CR2_STOP);
 	// RM0091 page 716 to see how baudrate generation register value calculated.
 	USART1->BRR = CORE_CLK_FREQ / USART1_BAUD;
-	USART1->CR1 = USART_CR1_TE | USART_CR1_UE;
+	// enable rx and tx
+	USART1->CR1 = USART_CR1_TE | USART_CR1_UE | USART_CR1_RE;
 }
 
 static inline void _usart1_tx(uint8_t u8) {
 	// wait until transmit data register empty
-	while((USART1->ISR & USART_ISR_TXE) == 0)
-		;
+	while((USART1->ISR & USART_ISR_TXE) == 0) {
+		__asm__("nop");
+	}
 	USART1->TDR = u8;
+}
+
+static inline uint8_t _usart1_rx(void) {
+	while((USART1->ISR & USART_ISR_RXNE) == 0) {
+		__asm__("nop");
+	}
+	return USART1->RDR;
+}
+
+static void _bsp_led_init(void) {
+	// ld4 : PC8 blue
+	// ld3 : PC9 yellow
+	// So Cortex-M0 cares about power consumption due that clock are disabled by default.
+	// We need to enable GPIOC clock. RM0091 page 122
+	RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
+	// see all of definitions of gpio register at RM0091 page 158
+	// set mode to output
+	GPIOC->MODER &= ~(GPIO_MODER_MODER8 | GPIO_MODER_MODER9);
+	GPIOC->MODER |= GPIO_MODER_MODER8_0 | GPIO_MODER_MODER9_0;
+	// set output type to push-pull
+	GPIOC->OTYPER &= ~(GPIO_OTYPER_OT_8 | GPIO_OTYPER_OT_9);
+	// set output speed to high
+	GPIOC->OSPEEDR |= GPIO_OSPEEDR_OSPEEDR8 | GPIO_OSPEEDR_OSPEEDR9;
+	// set pull-up/pull-down to no pull-up no pull-down
+	GPIOC->PUPDR &= ~(GPIO_PUPDR_PUPDR8 | GPIO_PUPDR_PUPDR9);
+}
+
+#define LED_BLUE ((uint32_t)GPIO_ODR_8)
+#define LED_GREEN ((uint32_t)GPIO_ODR_9)
+
+
+static void _bsp_led_set(uint32_t led_mask, uint8_t set) {
+	if(set) {
+		GPIOC->ODR |= led_mask;
+	} else {
+		GPIOC->ODR &= ~led_mask;
+	}
 }
 
 int main(void) {
 	_usart1_io_init();
 	_usart1_periph_init();
-	uint32_t delay = 10000;
+	_bsp_led_init();
+	uint8_t recv = 0;
+	uint8_t st = 0;
 	while(1) {
-		// welcome to embedded_abc project
-		_usart1_tx('a');
-		// this delay is important when you dont have quality tools
-		// I spent 2 hours why it is not working because dumb ass picoscope can not keep up
-		// with data and serial decoding does not work
-		for(uint32_t idx = 0; idx < delay; idx++);
-			;
-		_usart1_tx('b');
-		for(uint32_t idx = 0; idx < delay; idx++);
-			;
-		_usart1_tx('c');
-		for(uint32_t idx = 0; idx < delay; idx++);
-			;
+		recv = _usart1_rx();
+		// echo back
+		_usart1_tx(recv);
+		st = !st;
+		_bsp_led_set(LED_BLUE, st);
 	}
 }
 
