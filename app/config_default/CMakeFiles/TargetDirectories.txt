@@ -1,0 +1,3 @@
+/home/t15/prj/embedded_abc/01_systick/config_default/CMakeFiles/demo.elf.dir
+/home/t15/prj/embedded_abc/01_systick/config_default/CMakeFiles/edit_cache.dir
+/home/t15/prj/embedded_abc/01_systick/config_default/CMakeFiles/rebuild_cache.dir

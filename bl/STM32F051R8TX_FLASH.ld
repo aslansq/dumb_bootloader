@@ -44,11 +44,11 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 /* Memories definition */
 MEMORY
 {
-  BL_FLAG    (r  )   : ORIGIN = 0x20000000,  LENGTH = 4
-  RAM        (xrw)   : ORIGIN = 0x20000004,  LENGTH = 8188
-  FLASH      (rx )   : ORIGIN = 0x8000000,   LENGTH = 16K
-  METADATA   (r  )   : ORIGIN = 0x8004000,   LENGTH = 24
-  APP_VECTOR (r  )   : ORIGIN = 0x8004018,   LENGTH = 192
+  BL_FLAG        (r  )   : ORIGIN = 0x20000000,  LENGTH = 4
+  RAM            (xrw)   : ORIGIN = 0x20000004,  LENGTH = 8188
+  FLASH          (rx )   : ORIGIN = 0x8000000,   LENGTH = 16K
+  APP_METADATA   (r  )   : ORIGIN = 0x8004000,   LENGTH = 24
+  APP_VECTOR     (r  )   : ORIGIN = 0x8004018,   LENGTH = 192
 }
 
 /* Sections */
@@ -76,12 +76,12 @@ SECTIONS
     . = ALIGN(4);
   } > APP_VECTOR
 
-  .metadata :
+  .app_metadata :
   {
     . = ALIGN(4);
-    KEEP(*(.metadata)) /* Startup code */
+    KEEP(*(.app_metadata)) /* Startup code */
     . = ALIGN(4);
-  } > METADATA
+  } > APP_METADATA
 
   /* The program code and other data into "FLASH" Rom type memory */
   .text :

@@ -39,3 +39,11 @@ add_executable(demo.elf "${demo_src}"
 target_include_directories(demo.elf PUBLIC "${CMAKE_SOURCE_DIR}/"
                                        "${CMAKE_SOURCE_DIR}/CMSIS/Include"
                                        "${CMAKE_SOURCE_DIR}/CMSIS/Device/ST/STM32F0xx/Include")
+
+add_custom_command(TARGET demo.elf POST_BUILD
+        COMMAND ${CMAKE_OBJCOPY} -O binary demo.elf demo.bin
+        COMMENT "Converting ELF to BIN"
+)
+
+# Add define STM32F051x8
+target_compile_definitions(demo.elf PUBLIC STM32F051x8)

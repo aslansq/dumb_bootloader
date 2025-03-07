@@ -6,20 +6,22 @@
 
 // if this flag found, stay in bl mode
 #define MAGIC_BL_FLAG ((uint32_t)0x1243ad78)
-#define APP_VECTOR_ADDR (0x8004010u)
+#define APP_VECTOR_ADDR (0x8004018u)
+#define APP_METADATA_SIZE (24u)
+#define APP_ISR_VECTOR (192u)
 
 typedef volatile const struct {
-	uint32_t app_size;
-	uint8_t  app_version_major;
-	uint8_t  app_version_minor;
-	uint8_t  app_version_patch;
+	uint32_t size;
+	uint8_t  version_major;
+	uint8_t  version_minor;
+	uint8_t  version_patch;
 	uint8_t  reserved;
 	uint64_t epoch_time;
 	uint32_t reserved1;
 	uint32_t crc;
-} metadata_s;
+} app_metadata_s;
 
-_Static_assert(sizeof(metadata_s) == 24, "metadata_s size err");
+_Static_assert(sizeof(app_metadata_s) == APP_METADATA_SIZE, "app_metadata_s size err");
 
 typedef volatile const struct {
 	uint32_t _estack;
@@ -72,10 +74,10 @@ typedef volatile const struct {
 	uint32_t r11;                               /* Reserved                     */
 } app_isr_vector_s;
 
-_Static_assert(sizeof(app_isr_vector_s) == 192, "app_isr_vector_s size err");
+_Static_assert(sizeof(app_isr_vector_s) == APP_ISR_VECTOR, "app_isr_vector_s size err");
 
 extern volatile uint32_t bl_flag;
-extern metadata_s metadata;
+extern app_metadata_s app_metadata;
 extern app_isr_vector_s app_isr_vector;
 
 #endif // BL_H

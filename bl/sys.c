@@ -216,7 +216,7 @@ void systick_init(void) {
 
 void call_app_vector(uint32_t addr) {
 	uint32_t *ptr = (uint32_t *)addr;
-	((app_vector_t)(*ptr))();
+	((app_vector_t)(ptr))();
 }
 
 uint64_t sys_get_ms(void) {

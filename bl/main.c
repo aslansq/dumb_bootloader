@@ -13,21 +13,21 @@ int main(void) {
 	uint8_t *u8_ptr;
 
 	uint32_t crc32 = Crc_CalculateCRC32(
-		(uint8_t *)&metadata,
-		sizeof(metadata_s) - sizeof(metadata.crc),
+		(uint8_t *)&app_metadata,
+		sizeof(app_metadata_s) - sizeof(app_metadata.crc),
 		MAGIC_BL_FLAG
 	);
 
-	if(crc32 != metadata.crc) { // checking if metadata is corrupted
+	if(crc32 != app_metadata.crc) { // checking if metadata is corrupted
 		is_corrupted = true;
 	} else {
 		// checking if app is corrupted
 		crc32 = Crc_CalculateCRC32(
 			(uint8_t *)APP_VECTOR_ADDR,
-			metadata.app_size - sizeof(crc32),
+			app_metadata.size,
 			MAGIC_BL_FLAG
 		);
-		u8_ptr = (uint8_t *) (APP_VECTOR_ADDR + metadata.app_size - sizeof(crc32));
+		u8_ptr = (uint8_t *) (APP_VECTOR_ADDR + app_metadata.size);
 		if(memcmp(u8_ptr, &crc32, sizeof(crc32)) != 0) {
 			is_corrupted = true;
 		}
