@@ -46,8 +46,7 @@ MEMORY
 {
   BL_FLAG      (r  )    : ORIGIN = 0x20000000,  LENGTH = 4
   RAM          (xrw)    : ORIGIN = 0x20000004,  LENGTH = 8188
-  APP_METADATA (r  )    : ORIGIN = 0x8004000,   LENGTH = 24
-  FLASH        (rx )    : ORIGIN = 0x8004018,   LENGTH = 49128
+  FLASH        (rx )    : ORIGIN = 0x8004000,   LENGTH = 48K
 }
 
 /* Sections */
@@ -59,18 +58,12 @@ SECTIONS
     KEEP(*(.bl_flag)) /* Startup code */
     . = ALIGN(4);
   } > BL_FLAG
-  
-    .app_metadata :
-  {
-    . = ALIGN(4);
-    KEEP(*(.app_metadata)) /* Startup code */
-    . = ALIGN(4);
-  } > APP_METADATA
 
   /* The startup code into "FLASH" Rom type memory */
   .isr_vector :
   {
     . = ALIGN(4);
+    KEEP(*(.app_metadata)) /* Startup code */
     KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(4);
   } >FLASH

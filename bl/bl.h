@@ -7,10 +7,10 @@
 // if this flag found, stay in bl mode
 #define MAGIC_BL_FLAG ((uint32_t)0x1243ad78)
 #define APP_METADATA_ADDR (0x8004000u)
-#define APP_MAX_SIZE (48*1024)
+#define APP_MAX_SIZE (49152) // 48 kilobyte
 #define APP_VECTOR_ADDR (0x8004018u)
 #define APP_METADATA_SIZE (24u)
-#define APP_ISR_VECTOR (192u)
+#define APP_ISR_VECTOR_SIZE (192u)
 
 typedef volatile const struct {
 	uint32_t size;
@@ -76,7 +76,7 @@ typedef volatile const struct {
 	uint32_t r11;                               /* Reserved                     */
 } app_isr_vector_s;
 
-_Static_assert(sizeof(app_isr_vector_s) == APP_ISR_VECTOR, "app_isr_vector_s size err");
+_Static_assert(sizeof(app_isr_vector_s) == APP_ISR_VECTOR_SIZE, "app_isr_vector_s size err");
 
 extern volatile uint32_t bl_flag;
 extern app_metadata_s app_metadata;

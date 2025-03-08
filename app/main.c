@@ -1,5 +1,6 @@
 #include "stm32f0xx.h"
 #include <assert.h>
+#include <stdbool.h>
 
 #define CORE_CLK_FREQ (48000000) // 48MHz
 #define SYSTICK_FREQ (1000) // 1kHz
@@ -7,13 +8,9 @@
 
 #define GREEN GPIO_ODR_9
 #define BLUE  GPIO_ODR_8
-// See 00_core_clk for more details of this implementation
-// SystemInit is called before main
-// called from startup_stm32f051r8tx.s
-void SystemInit(void) {
-}
 
-void _bsp_led_init(void) {
+void SystemInit(void) {
+	// system is already init on bootloader
 }
 
 // System tick timer initialization. This is a feature of Cortex-M0 architecture. pm0215 page 4
@@ -47,7 +44,6 @@ void _systick_init(void) {
 
 int main(void) {
 	_systick_init();
-	//_bsp_led_init();
 	while(1)
 		;
 }
@@ -76,9 +72,15 @@ uint32_t count = 0;
 
 // 1ms timer
 void SysTick_Handler(void) {
+	static bool st = false;
 	count++;
 	if(count == 200) {
-		GPIOC->ODR ^= (GREEN);
+		if(st) {
+			GPIOC->ODR |= GREEN | BLUE;
+		} else {
+			GPIOC->ODR &= ~(GREEN | BLUE);
+		}
+		st = !st;
 		count = 0;
 	}
 }

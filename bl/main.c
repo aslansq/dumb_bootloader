@@ -10,7 +10,7 @@ bool is_corrupted(void)
 	uint8_t corrupt = false;
 	uint8_t *u8_ptr;
 	uint32_t crc32 = Crc_CalculateCRC32(
-		(uint8_t *)&app_metadata,
+		(uint8_t *)APP_METADATA_ADDR,
 		sizeof(app_metadata_s) - sizeof(app_metadata.crc),
 		MAGIC_BL_FLAG
 	);
@@ -88,14 +88,17 @@ void bl_mode(void) {
 				flash_addr += 4;
 			}
 			usart1_tx(rx);
+			if(flash_addr == (APP_VECTOR_ADDR + app_metadata.size + sizeof(uint32_t))) {
+				corrupt = is_corrupted();
+				if(corrupt == false) {
+					FLASH_Lock();
+					bl_flag = 0;
+					call_app_vector(app_isr_vector.Reset_Handler);
+				}
+			}
 		} else {
 			flash_addr = APP_METADATA_ADDR;
 			FLASH_Lock();
-			corrupt = is_corrupted();
-			if(corrupt == false) {
-				bl_flag = 0;
-				call_app_vector(app_isr_vector.Reset_Handler);
-			}
 		}
 	}
 }
