@@ -6,6 +6,8 @@
 
 // if this flag found, stay in bl mode
 #define MAGIC_BL_FLAG ((uint32_t)0x1243ad78)
+#define APP_METADATA_ADDR (0x8004000u)
+#define APP_MAX_SIZE (48*1024)
 #define APP_VECTOR_ADDR (0x8004018u)
 #define APP_METADATA_SIZE (24u)
 #define APP_ISR_VECTOR (192u)

@@ -53,6 +53,13 @@ MEMORY
 /* Sections */
 SECTIONS
 {
+    .bl_flag (NOLOAD) :
+  {
+    . = ALIGN(4);
+    KEEP(*(.bl_flag)) /* Startup code */
+    . = ALIGN(4);
+  } > BL_FLAG
+  
     .app_metadata :
   {
     . = ALIGN(4);

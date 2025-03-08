@@ -60,7 +60,7 @@ void NMI_Handler(void) {
 void HardFault_Handler(void) {
 	uint32_t i = 0;
 	while(1) {
-		GPIOC->ODR ^= (GREEN);
+		GPIOC->ODR ^= (BLUE);
 		for(i = 0u; i < 1000000u; i++)
 			;
 	}
@@ -78,8 +78,7 @@ uint32_t count = 0;
 void SysTick_Handler(void) {
 	count++;
 	if(count == 200) {
-		GPIOC->ODR ^= GPIO_ODR_8;
-		GPIOC->ODR ^= GPIO_ODR_9;
+		GPIOC->ODR ^= (GREEN);
 		count = 0;
 	}
 }

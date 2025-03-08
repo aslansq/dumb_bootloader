@@ -1,6 +1,7 @@
 
 #include <assert.h>
 #include "sys.h"
+#include "bl.h"
 
 #define CORE_CLK_FREQ (48000000u) // 48MHz
 #define USART1_BAUD   (9600u)
@@ -159,6 +160,26 @@ uint8_t usart1_rx(void) {
 	return USART1->RDR;
 }
 
+bool usart1_rx_to(uint32_t timeout, uint8_t *rx_ptr) {
+	uint64_t entry_time = sys_get_ms();
+	bool is_to = false;
+	bool is_read = false;
+
+	while(
+		((USART1->ISR & USART_ISR_RXNE) == 0) && 
+		(is_to == false)
+	) {
+		is_to = sys_get_ms() - entry_time > timeout ? true : false;
+	}
+
+	if((USART1->ISR & USART_ISR_RXNE) != 0) {
+		*rx_ptr = USART1->RDR;
+		is_read = true;
+	}
+
+	return is_read;
+}
+
 void bsp_led_init(void) {
 	// ld4 : PC8 blue
 	// ld3 : PC9 yellow
@@ -212,6 +233,24 @@ void systick_init(void) {
 	// clock (HCLK). (STK_CSR) -> CLKSOURCE
 	// choose HCLK as clock source, enable interrupt, enable systick
 	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
+}
+
+void bsp_btn_init(void) {
+	// pa0 user button
+	// by default it is pull down
+	// when user presses button; pulled up
+	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+	// rm0091 page 158
+	// input mode
+	GPIOA->MODER &= ~GPIO_MODER_MODER0;
+	// set output speed to high
+	GPIOA->OSPEEDR |= GPIO_OSPEEDR_OSPEEDR0;
+	// no pull up/down select. board has external resistor
+	GPIOA->PUPDR &= ~GPIO_PUPDR_PUPDR0;
+}
+
+bool bsp_btn_is_pressed(void) {
+	return (GPIOA->IDR & GPIO_IDR_0) ? true : false;
 }
 
 void call_app_vector(uint32_t addr) {

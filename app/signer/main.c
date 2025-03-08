@@ -6,8 +6,8 @@
 
 #include "../bl.h"
 
-#define BIN_FILE "../../build/demo.bin"
-#define SIGNED_BIN_FILE "signed.bin"
+#define BIN_FILE "app.elf.bin"
+#define SIGNED_BIN_FILE "app.elf.signed.bin"
 
 extern uint32_t Crc_CalculateCRC32(const uint8_t *s, uint32_t len, uint32_t startVal);
 
@@ -16,12 +16,18 @@ uint64_t get_bin_size() {
 	FILE *file_ptr;
 	file_ptr = fopen(BIN_FILE, "rb");
 	if (file_ptr == NULL) {
-		perror("Failed to open file");
+		perror("Failed to open file\n");
 		exit(1);
 	}
 	fseek(file_ptr, 0, SEEK_END);
 	file_size = ftell(file_ptr);
 	fclose(file_ptr);
+
+	if(file_size % sizeof(uint32_t)) {
+		perror("binary size should be divisible 4\n");
+		exit(1);
+	}
+
 	return file_size;
 }
 
@@ -32,21 +38,21 @@ uint8_t *get_bin(uint64_t bin_size) {
 	file_ptr = fopen(BIN_FILE, "rb");
 
 	if (file_ptr == NULL) {
-		perror("Failed to open file");
+		perror("Failed to open file\n");
 		exit(1);
 	}
 
 	uint8_t *buf_ptr = (uint8_t *)malloc(bin_size);
 
 	if (buf_ptr == NULL) {
-		perror("Failed to allocate memory");
+		perror("Failed to allocate memory\n");
 		exit(1);
 	}
 
 	bin_read = fread(buf_ptr, 1, bin_size, file_ptr);
 
 	if (bin_read != bin_size) {
-		perror("Failed to read file");
+		perror("Failed to read file\n");
 		free(buf_ptr);
 		exit(1);
 	}
@@ -105,7 +111,7 @@ void write_signed_bin(
 	FILE *file_ptr;
 	file_ptr = fopen(SIGNED_BIN_FILE, "wb");
 	if (file_ptr == NULL) {
-		perror("Failed to open consist file");
+		perror("Failed to open consist file\n");
 		exit(1);
 	}
 

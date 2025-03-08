@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 
+set(prj_name "app.elf")
+
 # Set the project name
-project(demo.elf C ASM)
+project(${prj_name} C ASM)
 
 set(CMAKE_AR           $ENV{GCC_ARM_NONE_EABI_BIN_PATH}/arm-none-eabi-ar${CMAKE_EXECUTABLE_SUFFIX})
 set(CMAKE_ASM_COMPILER $ENV{GCC_ARM_NONE_EABI_BIN_PATH}/arm-none-eabi-gcc${CMAKE_EXECUTABLE_SUFFIX})
@@ -33,17 +35,17 @@ set_property(SOURCE startup_stm32f051r8tx.s APPEND PROPERTY COMPILE_OPTIONS "-x"
 
 file(GLOB demo_src "${CMAKE_SOURCE_DIR}/*.c")
 # Add the executable
-add_executable(demo.elf "${demo_src}"
+add_executable(${prj_name} "${demo_src}"
                     "${CMAKE_SOURCE_DIR}/startup_stm32f051r8tx.s")
 # Include directories
-target_include_directories(demo.elf PUBLIC "${CMAKE_SOURCE_DIR}/"
+target_include_directories(${prj_name} PUBLIC "${CMAKE_SOURCE_DIR}/"
                                        "${CMAKE_SOURCE_DIR}/CMSIS/Include"
                                        "${CMAKE_SOURCE_DIR}/CMSIS/Device/ST/STM32F0xx/Include")
 
-add_custom_command(TARGET demo.elf POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY} -O binary demo.elf demo.bin
+add_custom_command(TARGET ${prj_name} POST_BUILD
+        COMMAND ${CMAKE_OBJCOPY} -O binary ${prj_name} ${prj_name}.bin
         COMMENT "Converting ELF to BIN"
 )
 
 # Add define STM32F051x8
-target_compile_definitions(demo.elf PUBLIC STM32F051x8)
+target_compile_definitions(${prj_name} PUBLIC STM32F051x8)
